@@ -1,5 +1,5 @@
 import axios from "axios";
-import {getCookie} from "@/pages/login";
+import {getCookie} from "@/utils/cookieUtils";
 
 export const API = axios.create({
     headers: {

@@ -3,57 +3,27 @@ import { memberApi } from '../../api/member-api';
 import { useDispatch } from 'react-redux';
 import { resetMemberProfile, setMemberProfile } from '@/store/member/slice';
 import {useRouter} from "next/router";
-import { useEffect } from 'react';
+import {deleteCookie, setCookie} from "@/utils/cookieUtils";
 
-// TODO 나중에 다른곳으로 옮길것
-export function setCookie(name: string, value: any, hour: number) {
-	let expires = "";
-	if (hour) {
-		let date = new Date();
-		date.setTime(date.getTime() + (hour * 60 * 60 * 1000));
-		expires = "; expires=" + date.toUTCString();
-	}
-	document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-}
 
-export function getCookie(name: string) {
-	let cookieValue = null;
-	if (document.cookie && document.cookie !== '') {
-		const cookies = document.cookie.split(';');
-		for (let i = 0; i < cookies.length; i++) {
-			const cookie = cookies[i].trim();
-			if (cookie.substring(0, name.length + 1) === (name + '=')) {
-				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-				break;
-			}
-		}
-	}
-	return cookieValue;
-}
-
-export function deleteCookie(name: string) {
-	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
-}
 
 const Login: NextPage = () => {
-	const router = useRouter()
-	const dispatch = useDispatch()
-
-
-	useEffect(() => {
+	window.onload = () => {
 		const pattern = /status=([^&]+)/;
 		const result = router.asPath.match(pattern);
 		let loginStatus = ''
 
 		if (result) {
 			loginStatus = result[1];
-		} 
+		}
 
 		if (loginStatus === 'NONE') {
 			kakaoLogout(true)
 		}
-	}, [])
+	};
 
+	const router = useRouter()
+	const dispatch = useDispatch()
 
 	const kakaoLogin = async () => {
 		if (await isKakaoUserConnected()) {
@@ -81,16 +51,21 @@ const Login: NextPage = () => {
 							imgPath: kakaoAccount.profile.thumbnail_image_url
 						}
 
-						const memberResponse = await memberApi.loginMember(loginParam)
-						dispatch(setMemberProfile(memberResponse))
-						setCookie('access_token', memberResponse.jwtToken, 1)
-						// TODO 대시보드나 다른곳으로 가게 할것. router.push('/');
+						const memberResponse = await memberApi.loginMember(loginParam).catch(reason => {
+							alert('로그인중 오류가 발생하였습니다.')
+							kakaoLogout(false)
+						})
+
+						if (memberResponse) {
+							dispatch(setMemberProfile(memberResponse))
+							setCookie('access_token', memberResponse.jwtToken, 1)
+							// TODO 대시보드나 다른곳으로 가게 할것. router.push('/');
+						}
 					}
 				})
 			},
 			fail: (error: any) => {
 				alert('로그인중 오류가 발생하였습니다.')
-				console.log(error)
 			}
 		})
 	}
@@ -131,7 +106,6 @@ const Login: NextPage = () => {
 		window.Kakao.Auth.logout()
 		removeJwtAccessToken()
 		dispatch(resetMemberProfile())
-		await memberApi.logoutMember()
 	}
 
 	const apiTest = async () => {
@@ -153,8 +127,6 @@ const Login: NextPage = () => {
 				setKakaoAccessToken(null)
 				removeJwtAccessToken()
 				dispatch(resetMemberProfile())
-				memberApi.logoutMember()
-
 			},
 			fail: (error: any) => {
 				alert('카카오 계정 연결 종료 처리중 오류가 발생하였습니다.\n관리자에게 문의 바랍니다.')

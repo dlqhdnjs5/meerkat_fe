@@ -78,11 +78,10 @@ export function DashBoard() {
 
     const param = {
       notiTime,
-      notiName,
+      name: notiName,
       ...addNotificationAddressInfo
     }
 
-    console.log('param: ', param)
     dispatch(asyncAddNotification(param))
   }
 
@@ -187,7 +186,7 @@ export function DashBoard() {
     )
   }
 
-  const addNotificationModalCardBtn = () => {
+  const addNotificationModalCard = () => {
     return (
         <div className="grid gap-4 md:grid-cols-2">
           <Dialog modal={false} onOpenChange={handleAddNotificationModalOpenChange}>
@@ -221,7 +220,7 @@ export function DashBoard() {
           </div>
           <div>
             {titles.length < 5 ?
-                <div>{addNotificationModalCardBtn()}</div> : <div></div>
+                <div>{addNotificationModalCard()}</div> : <div></div>
             }
           </div>
         </main>

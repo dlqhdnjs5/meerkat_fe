@@ -15,6 +15,9 @@ declare global {
 }
 
 export const kakaoInit = () => { // TODO 페이지가 로드되면 실행
+  if(window.Kakao.isInitialized()) {
+    return;
+  }
   window.Kakao.init(process.env.KAKAO_JAVASCRIPT_KEY);
 }
 
