@@ -1,10 +1,11 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {NotificationState} from "@/store/notification/types";
-import {asyncAddNotification} from "@/store/notification/asyncThunk";
+import {asyncAddNotification, asyncGetNotifications} from "@/store/notification/asyncThunk";
 
 export const initialState: NotificationState = {
     loading: {
-        addNotification: false
+        addNotification: false,
+        getNotifications: false
     },
     addNotification: {
         address: {
@@ -16,7 +17,8 @@ export const initialState: NotificationState = {
         },
         name: '',
         time: '',
-    }
+    },
+    notificationList: []
 }
 
 export const notificationSlice = createSlice({
@@ -32,6 +34,16 @@ export const notificationSlice = createSlice({
         })
         builder.addCase(asyncAddNotification.rejected, (state, action) => {
             state.loading.addNotification = false
+        })
+        builder.addCase(asyncGetNotifications.pending, (state, action) => {
+            state.loading.getNotifications = true
+        })
+        builder.addCase(asyncGetNotifications.fulfilled, (state, action) => {
+            state.loading.getNotifications = false
+            state.notificationList = action.payload.data
+        })
+        builder.addCase(asyncGetNotifications.rejected, (state, action) => {
+            state.loading.getNotifications = false
         })
     }
 })

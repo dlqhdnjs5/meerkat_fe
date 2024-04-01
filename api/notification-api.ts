@@ -1,12 +1,15 @@
-import { API } from './index';
-import {AddNotificationInfo} from "@/store/notification/types";
+import {API} from './index';
 
 const addNotification = async (addNotificationParam: any) => {
-    const response = await API.post('/mapi/notifications', addNotificationParam)
-    return response.data
+    return await API.post('/mapi/notifications', addNotificationParam)
+}
+const getNotifications = async () => {
+    return await API.get('/mapi/notifications')
 }
 
 
+
 export const notificationApi = {
-    addNotification
+    addNotification,
+    getNotifications
 }

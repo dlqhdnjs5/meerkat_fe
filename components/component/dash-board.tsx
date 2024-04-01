@@ -11,25 +11,38 @@ import {
 } from "@/components/ui/dialog";
 import {Label} from "@/components/ui/label";
 import _ from 'lodash';
-import {JSX, SVGProps, useState} from "react";
+import {JSX, SVGProps, useEffect, useState} from "react";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import DaumPostcode, {Address} from 'react-daum-postcode';
-import {AddNotificationInfo, NotificationAddress} from "@/store/notification/types";
-import {useDispatch} from "react-redux";
-import {asyncAddNotification} from "@/store/notification/asyncThunk";
+import {NotificationAddress, NotificationInfo} from "@/store/notification/types";
+import {useDispatch, useSelector} from "react-redux";
+import {asyncAddNotification, asyncGetNotifications} from "@/store/notification/asyncThunk";
 
 export function DashBoard() {
   const dispatch = useDispatch<any>()
+  // @ts-ignore
+  const { notification } = useSelector(state => state)
+  const [notificationList, setNotificationList] = useState([])
   const [notiDate, setNotidate] = useState()
   const [isDaumPostCodeView, setIsDaumPostCodeView] = useState<boolean>(false)
   const [addNotificationAddressInfo, setAddNotificationAddressInfo] = useState<NotificationAddress>()
   const [notiName, setNotiname] = useState('')
   const [notiTime, setNotiTime] = useState()
-  const titles = ['네가', '제일', '이뻐', '알'];
+  const [isAddNotificationModalOpen, setIsAddNotificationModalOpen] = useState(false)
   const postCodeStyle = {
     width: '400px',
     height: '400px',
   };
+  const initNotificationAddressInfo = {userAddress: "", bcode: "", bname: "", postNo: "", sigunguCode: ""}
+
+  useEffect(() => {
+    dispatch(asyncGetNotifications())
+  }, [])
+
+  useEffect(() => {
+    setNotificationList(notification.notificationList || [])
+  }, [notification.notificationList])
+
 
   const handleOpenModal = () => {
     setIsDaumPostCodeView(true)
@@ -39,7 +52,7 @@ export function DashBoard() {
     if (isOpen) {
       setIsDaumPostCodeView(false)
     } else {
-      setAddNotificationAddressInfo({userAddress: "", bcode: "", bname: "", postNo: "", sigunguCode: ""})
+      setAddNotificationAddressInfo(initNotificationAddressInfo)
     }
   }
 
@@ -68,21 +81,29 @@ export function DashBoard() {
       return false
     }
 
+    // TODO 추가 필요
     return true
   }
 
   const handleAddNotifiaction = () => {
-    console.log('addNotificationAddressInfo : ', addNotificationAddressInfo)
-    console.log('notiTime :', notiTime)
-    console.log('notiName: ', notiName)
-
     const param = {
       notiTime,
       name: notiName,
       ...addNotificationAddressInfo
     }
 
-    dispatch(asyncAddNotification(param))
+    const handleSuccess = () => {
+      setIsAddNotificationModalOpen(false)
+      setAddNotificationAddressInfo(initNotificationAddressInfo)
+      dispatch(asyncGetNotifications())
+    }
+
+    const parameter = {
+      handleSuccess,
+      param
+    }
+
+    dispatch(asyncAddNotification(parameter))
   }
 
   const handleNotiNameChange = (e: any) => {
@@ -93,11 +114,11 @@ export function DashBoard() {
     setNotiTime(notiTime)
   }
 
-  const notificationCard = (title: string, index: any) => {
+  const notificationCard = (notification: NotificationInfo) => {
     return (
-        <Card key={index} className="transition-colors duration-300 ease-in-out bg-white dark:bg-gray-900">
+        <Card key={notification.notificationNo} className="transition-colors duration-300 ease-in-out bg-white dark:bg-gray-900">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <CardTitle className="text-sm font-medium">{notification.name}</CardTitle>
             <div className="flex gap-2">
               <Button
                   className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -116,8 +137,8 @@ export function DashBoard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">+20.1% from last month</p>
+            <div className="text-2xl font-bold">{notification.userAddress}</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{notification.notiTime} 시</p>
           </CardContent>
         </Card>
     )
@@ -189,11 +210,11 @@ export function DashBoard() {
   const addNotificationModalCard = () => {
     return (
         <div className="grid gap-4 md:grid-cols-2">
-          <Dialog modal={false} onOpenChange={handleAddNotificationModalOpenChange}>
+          <Dialog modal={false} onOpenChange={handleAddNotificationModalOpenChange} defaultOpen={false} open={isAddNotificationModalOpen}>
             <DialogTrigger asChild>
               <Card
                   className="transition-colors duration-300 ease-in-out bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={undefined}
+                  onClick={() => setIsAddNotificationModalOpen(!isAddNotificationModalOpen)}
               >
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">새로운 알람을 추가해 보세요!</CardTitle>
@@ -214,12 +235,12 @@ export function DashBoard() {
       <div className="flex flex-col w-full min-h-screen">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
           <div className="grid gap-4 md:grid-cols-2">
-            {titles.length ? titles.map((title, index) => (
-                notificationCard(title, index)
+            {notificationList.length ? notificationList.map((notification: NotificationInfo) => (
+                notificationCard(notification)
             )) : <></>}
           </div>
           <div>
-            {titles.length < 5 ?
+            {notificationList.length < 5 ?
                 <div>{addNotificationModalCard()}</div> : <div></div>
             }
           </div>
