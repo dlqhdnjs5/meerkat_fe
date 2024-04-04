@@ -1,11 +1,12 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {NotificationState} from "@/store/notification/types";
-import {asyncAddNotification, asyncGetNotifications} from "@/store/notification/asyncThunk";
+import {asyncAddNotification, asyncGetNotifications, asyncRemoveNotifications} from "@/store/notification/asyncThunk";
 
 export const initialState: NotificationState = {
     loading: {
         addNotification: false,
-        getNotifications: false
+        getNotifications: false,
+        removeNotifications: false
     },
     addNotification: {
         address: {
@@ -26,24 +27,34 @@ export const notificationSlice = createSlice({
     initialState,
     reducers: {},
     extraReducers: (builder) => {
-        builder.addCase(asyncAddNotification.pending, (state, action) => {
+        builder.addCase(asyncAddNotification.pending, (state, _) => {
             state.loading.addNotification = true
         })
-        builder.addCase(asyncAddNotification.fulfilled, (state, action) => {
+        builder.addCase(asyncAddNotification.fulfilled, (state, _) => {
             state.loading.addNotification = false
         })
-        builder.addCase(asyncAddNotification.rejected, (state, action) => {
+        builder.addCase(asyncAddNotification.rejected, (state, _) => {
             state.loading.addNotification = false
         })
-        builder.addCase(asyncGetNotifications.pending, (state, action) => {
+        builder.addCase(asyncGetNotifications.pending, (state, _) => {
             state.loading.getNotifications = true
         })
         builder.addCase(asyncGetNotifications.fulfilled, (state, action) => {
             state.loading.getNotifications = false
-            state.notificationList = action.payload.data
+            const payload = action.payload || {}
+            state.notificationList = payload?.data
         })
-        builder.addCase(asyncGetNotifications.rejected, (state, action) => {
+        builder.addCase(asyncGetNotifications.rejected, (state, _) => {
             state.loading.getNotifications = false
+        })
+        builder.addCase(asyncRemoveNotifications.pending, (state, _) => {
+            state.loading.removeNotifications = true
+        })
+        builder.addCase(asyncRemoveNotifications.fulfilled, (state, _) => {
+            state.loading.removeNotifications = false
+        })
+        builder.addCase(asyncRemoveNotifications.rejected, (state, _) => {
+            state.loading.removeNotifications = false
         })
     }
 })

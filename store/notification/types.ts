@@ -3,6 +3,7 @@ export interface NotificationState {
     loading: {
         addNotification: boolean
         getNotifications: boolean
+        removeNotifications: boolean
     }
     notificationList: any
 }

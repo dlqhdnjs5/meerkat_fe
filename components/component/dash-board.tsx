@@ -16,7 +16,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import DaumPostcode, {Address} from 'react-daum-postcode';
 import {NotificationAddress, NotificationInfo} from "@/store/notification/types";
 import {useDispatch, useSelector} from "react-redux";
-import {asyncAddNotification, asyncGetNotifications} from "@/store/notification/asyncThunk";
+import {asyncAddNotification, asyncGetNotifications, asyncRemoveNotifications} from "@/store/notification/asyncThunk";
 
 export function DashBoard() {
   const dispatch = useDispatch<any>()
@@ -92,14 +92,15 @@ export function DashBoard() {
       ...addNotificationAddressInfo
     }
 
-    const handleSuccess = () => {
+    const handleAddNotificationSuccess = () => {
       setIsAddNotificationModalOpen(false)
       setAddNotificationAddressInfo(initNotificationAddressInfo)
+      alert('알람을 생성하였습니다.')
       dispatch(asyncGetNotifications())
     }
 
     const parameter = {
-      handleSuccess,
+      handleSuccess: handleAddNotificationSuccess,
       param
     }
 
@@ -112,6 +113,24 @@ export function DashBoard() {
 
   const handleNotiTimeChange = (notiTime: any) => {
     setNotiTime(notiTime)
+  }
+
+
+
+  const handleRemoveNotification = (notificationNo: number) => {
+    if(confirm('해당 알람을 삭제하시겠습니까?')) {
+      const handleRemoveNotificationSuccess = () => {
+        alert('알람을 삭제하였습니다.')
+        dispatch(asyncGetNotifications())
+      }
+
+      const parameter = {
+        handleSuccess: handleRemoveNotificationSuccess,
+        notificationNo
+      }
+
+      dispatch(asyncRemoveNotifications(parameter))
+    }
   }
 
   const notificationCard = (notification: NotificationInfo) => {
@@ -128,7 +147,7 @@ export function DashBoard() {
               >
                 <PencilIcon className="w-4 h-4"/>
               </Button>
-              <Button className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800" size="icon" variant="ghost">
+              <Button className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => handleRemoveNotification(notification.notificationNo)} size="icon" variant="ghost">
                 <TrashIcon className="w-4 h-4"/>
               </Button>
               <Button className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800" size="icon" variant="ghost">

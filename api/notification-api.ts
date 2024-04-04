@@ -7,9 +7,14 @@ const getNotifications = async () => {
     return await API.get('/mapi/notifications')
 }
 
+const removeNotifications = async (notificationNo: any) => {
+    return await API.delete(`/mapi/notifications/${notificationNo}`)
+}
+
 
 
 export const notificationApi = {
     addNotification,
-    getNotifications
+    getNotifications,
+    removeNotifications
 }
