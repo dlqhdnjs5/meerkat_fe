@@ -2,7 +2,7 @@ import {createAsyncThunk} from "@reduxjs/toolkit";
 import {notificationApi} from "@/api/notification-api";
 
 export const asyncAddNotification = createAsyncThunk(
-    'notification/add',
+    'notification/ADD_NOTIFICATION',
     async (parameterWithHandler: any, thunkAPI) => {
         const {param, handleSuccess} = parameterWithHandler
         notificationApi.addNotification(param)
@@ -14,8 +14,21 @@ export const asyncAddNotification = createAsyncThunk(
     }
 )
 
+export const asyncModifyNotification = createAsyncThunk(
+    'notification/MODIFY_NOTIFICATION',
+    async (parameterWithHandler: any, thunkAPI) => {
+        const {param, handleSuccess} = parameterWithHandler
+        notificationApi.modifyNotification(param)
+            .then(value => {
+                handleSuccess()
+            }).catch(error => {
+            handleCommonError(error)
+        })
+    }
+)
+
 export const asyncGetNotifications = createAsyncThunk(
-    'notification/get',
+    'notification/GET_NOTIFICATIONS',
     async (_ , thunkAPI) => {
         return await notificationApi.getNotifications()
             .catch(error => {
@@ -24,8 +37,23 @@ export const asyncGetNotifications = createAsyncThunk(
     }
 )
 
+export const asyncGetNotification = createAsyncThunk(
+    'notification/GET_NOTIFICATION',
+    async (parameterWithHandler: any , thunkAPI) => {
+        const {notificationNo, handleSuccess} = parameterWithHandler
+        return await notificationApi.getNotification(notificationNo)
+            .then(value => {
+                console.log(value.data)
+                handleSuccess(value.data)
+            })
+            .catch(error => {
+                handleCommonError(error)
+            })
+    }
+)
+
 export const asyncRemoveNotifications = createAsyncThunk(
-    'notification/remove',
+    'notification/REMOVE_NOTIFICATION',
     async (parameterWithHandler: any , thunkAPI) => {
         const {notificationNo, handleSuccess} = parameterWithHandler
         return await notificationApi.removeNotifications(notificationNo)
@@ -48,4 +76,4 @@ const handleCommonError = (error: any) => {
         default:
             alert('시스템 오류가 발생하였습니다.');
     }
-};
+}

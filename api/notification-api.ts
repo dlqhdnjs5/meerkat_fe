@@ -3,8 +3,17 @@ import {API} from './index';
 const addNotification = async (addNotificationParam: any) => {
     return await API.post('/mapi/notifications', addNotificationParam)
 }
+
+const modifyNotification = async (modifyNotificationParam: any) => {
+    return await API.put('/mapi/notifications', modifyNotificationParam)
+}
+
 const getNotifications = async () => {
     return await API.get('/mapi/notifications')
+}
+
+const getNotification = async (notificationNo: any) => {
+    return await API.get(`/mapi/notifications/${notificationNo}`)
 }
 
 const removeNotifications = async (notificationNo: any) => {
@@ -16,5 +25,7 @@ const removeNotifications = async (notificationNo: any) => {
 export const notificationApi = {
     addNotification,
     getNotifications,
-    removeNotifications
+    getNotification,
+    removeNotifications,
+    modifyNotification
 }

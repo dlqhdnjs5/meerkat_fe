@@ -2,10 +2,13 @@ export interface NotificationState {
     addNotification: AddNotificationInfo
     loading: {
         addNotification: boolean
+        modifyNotification: boolean
         getNotifications: boolean
+        getNotification: boolean
         removeNotifications: boolean
     }
     notificationList: any
+    notification: NotificationInfo
 }
 
 export interface NotificationAddress {

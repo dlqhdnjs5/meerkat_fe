@@ -16,53 +16,70 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import DaumPostcode, {Address} from 'react-daum-postcode';
 import {NotificationAddress, NotificationInfo} from "@/store/notification/types";
 import {useDispatch, useSelector} from "react-redux";
-import {asyncAddNotification, asyncGetNotifications, asyncRemoveNotifications} from "@/store/notification/asyncThunk";
+import {
+  asyncAddNotification,
+  asyncGetNotification,
+  asyncGetNotifications, asyncModifyNotification,
+  asyncRemoveNotifications
+} from "@/store/notification/asyncThunk";
 
 export function DashBoard() {
   const dispatch = useDispatch<any>()
   // @ts-ignore
-  const { notification } = useSelector(state => state)
-  const [notificationList, setNotificationList] = useState([])
-  const [notiDate, setNotidate] = useState()
+  const { notificationList, notification } = useSelector(state => state.notification)
   const [isDaumPostCodeView, setIsDaumPostCodeView] = useState<boolean>(false)
   const [addNotificationAddressInfo, setAddNotificationAddressInfo] = useState<NotificationAddress>()
   const [notiName, setNotiname] = useState('')
-  const [notiTime, setNotiTime] = useState()
-  const [isAddNotificationModalOpen, setIsAddNotificationModalOpen] = useState(false)
+  const [notiTime, setNotiTime] = useState('')
+  const [notificationInfo, setNotificationInfo] = useState<any>()
+  const [openModifyModal, setOpenModifyModal] = useState(false)
+  const [openAddModal, setOpenAddModal] = useState(false)
   const postCodeStyle = {
     width: '400px',
     height: '400px',
-  };
+  }
+  const hours = Array.from({length: 24}, (_, index) => index.toString())
   const initNotificationAddressInfo = {userAddress: "", bcode: "", bname: "", postNo: "", sigunguCode: ""}
 
   useEffect(() => {
     dispatch(asyncGetNotifications())
   }, [])
 
-  useEffect(() => {
-    setNotificationList(notification.notificationList || [])
-  }, [notification.notificationList])
-
 
   const handleOpenModal = () => {
     setIsDaumPostCodeView(true)
   }
 
+  const initNotificationParameter = () => {
+    setAddNotificationAddressInfo(initNotificationAddressInfo)
+    setNotiname('')
+    setNotiTime('')
+    setNotificationInfo({})
+  }
+
   const handleAddNotificationModalOpenChange = (isOpen: boolean) => {
     if (isOpen) {
+      setOpenAddModal(true)
       setIsDaumPostCodeView(false)
     } else {
-      setAddNotificationAddressInfo(initNotificationAddressInfo)
+      setOpenAddModal(false)
+      initNotificationParameter()
     }
+  }
+
+  const handleModifyNotificationModalOpenChange = () => {
+    initNotificationParameter()
+    setNotificationInfo({})
+    setOpenModifyModal(!openModifyModal)
   }
 
   const handleSelectPostCodeComplete = (data: Address) => {
     let address: string
 
     if (data.userSelectedType === 'R') {
-      address = data.roadAddress;
+      address = data.roadAddress
     } else {
-      address = data.jibunAddress;
+      address = data.jibunAddress
     }
 
     setAddNotificationAddressInfo({
@@ -76,12 +93,14 @@ export function DashBoard() {
     setIsDaumPostCodeView(false)
   }
 
-  const validNotificationInfo = (notificationInfo: NotificationAddress) => {
-    if (_.isEmpty(notificationInfo)) {
-      return false
+  const validNotificationInfo = (notificationInfo: any) => {
+    for (const key in notificationInfo) {
+      if (notificationInfo.hasOwnProperty(key)) {
+        if (_.isEmpty(notificationInfo[key])) {
+          return false
+        }
+      }
     }
-
-    // TODO 추가 필요
     return true
   }
 
@@ -92,11 +111,16 @@ export function DashBoard() {
       ...addNotificationAddressInfo
     }
 
+    if (!validNotificationInfo(param)) {
+      alert('알람 정보를 모두 기입해 주세요.')
+      return
+    }
+
     const handleAddNotificationSuccess = () => {
-      setIsAddNotificationModalOpen(false)
-      setAddNotificationAddressInfo(initNotificationAddressInfo)
-      alert('알람을 생성하였습니다.')
+      initNotificationParameter()
+      alert('알람을 생성 하였습니다.')
       dispatch(asyncGetNotifications())
+      setOpenAddModal(false)
     }
 
     const parameter = {
@@ -107,6 +131,33 @@ export function DashBoard() {
     dispatch(asyncAddNotification(parameter))
   }
 
+  const handleModifyNotification = () => {
+    const param = {
+      notificationNo: notificationInfo.notificationNo,
+      notiTime,
+      name: notiName
+    }
+
+    if (!validNotificationInfo(param)) {
+      alert('알람 정보를 모두 기입해 주세요.')
+      return
+    }
+
+    const handleModifyNotificationSuccess = () => {
+      initNotificationParameter()
+      alert('알람을 수정 하였습니다.')
+      dispatch(asyncGetNotifications())
+      setOpenModifyModal(false)
+    }
+
+    const parameter = {
+      handleSuccess: handleModifyNotificationSuccess,
+      param
+    }
+
+    dispatch(asyncModifyNotification(parameter))
+  }
+
   const handleNotiNameChange = (e: any) => {
     setNotiname(e.target.value)
   }
@@ -115,7 +166,21 @@ export function DashBoard() {
     setNotiTime(notiTime)
   }
 
+  const handleOpenModifyModal = (notificationNo: number) => {
+    const handleGetNotificationSuccess = (response: NotificationInfo) => {
+      setNotificationInfo(response)
+      setNotiname(response.name)
+      setNotiTime(response.notiTime)
+    }
 
+    const param = {
+      handleSuccess: handleGetNotificationSuccess,
+      notificationNo: notificationNo
+    }
+
+    dispatch(asyncGetNotification(param))
+    setOpenModifyModal(!openModifyModal)
+  }
 
   const handleRemoveNotification = (notificationNo: number) => {
     if(confirm('해당 알람을 삭제하시겠습니까?')) {
@@ -141,7 +206,7 @@ export function DashBoard() {
             <div className="flex gap-2">
               <Button
                   className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  onClick={undefined}
+                  onClick={() => handleOpenModifyModal(notification.notificationNo)}
                   size="icon"
                   variant="ghost"
               >
@@ -161,6 +226,46 @@ export function DashBoard() {
           </CardContent>
         </Card>
     )
+  }
+
+  const modifyModal = (openModal: boolean) => {
+    return (
+        <Dialog modal={false} defaultOpen={false} open={openModal} onOpenChange={handleModifyNotificationModalOpenChange}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>알람 수정</DialogTitle>
+              <DialogDescription>주소 이외 정보만 수정 가능합니다.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="input1">주소</Label>
+                <div className="flex gap-2">
+                  <Input className="w-3/4" id="input1" readOnly={true} placeholder="주소"
+                         value={notificationInfo?.userAddress}/>
+                  <Button disabled={true}>주소 찾기</Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="input2">알람 제목</Label>
+                <Input id="input2" placeholder="알람에 대한 제목을 입력해 주세요." onChange={handleNotiNameChange} value={notiName}/>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="input3">알람 시각</Label>
+                <Select onValueChange={handleNotiTimeChange} value={notiTime}>
+                  <SelectTrigger>
+                    <SelectValue>{notiTime} 시</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hours.map(value => <SelectItem key={value} value={value}>{value} 시</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button className="w-full" type="submit" onClick={handleModifyNotification}>
+                수정
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>)
   }
 
   const daumPostCodeContent = () => {
@@ -187,8 +292,6 @@ export function DashBoard() {
   }
 
   const addNotificationModalInputContent = () => {
-    const hours = Array.from({length: 24}, (_, index) => index.toString())
-
     return (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -205,13 +308,13 @@ export function DashBoard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="input2">알람 제목</Label>
-              <Input id="input2" placeholder="알람에 대한 제목을 입력해 주세요." onChange={handleNotiNameChange}/>
+              <Input id="input2" placeholder="알람에 대한 제목을 입력해 주세요." onChange={handleNotiNameChange} value={notiName}/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="input3">알람 시각</Label>
-              <Select onValueChange={handleNotiTimeChange}>
+              <Select onValueChange={handleNotiTimeChange} value={notiTime}>
                 <SelectTrigger>
-                  <SelectValue>{notiDate}</SelectValue>
+                  <SelectValue>{notiTime} 시</SelectValue>
                 </SelectTrigger>
                 <SelectContent >
                   {hours.map(value => <SelectItem key={value} value={value}>{value} 시</SelectItem>)}
@@ -229,11 +332,10 @@ export function DashBoard() {
   const addNotificationModalCard = () => {
     return (
         <div className="grid gap-4 md:grid-cols-2">
-          <Dialog modal={false} onOpenChange={handleAddNotificationModalOpenChange} defaultOpen={false} open={isAddNotificationModalOpen}>
+          <Dialog modal={false}  onOpenChange={handleAddNotificationModalOpenChange} defaultOpen={false} open={openAddModal}>
             <DialogTrigger asChild>
               <Card
                   className="transition-colors duration-300 ease-in-out bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={() => setIsAddNotificationModalOpen(!isAddNotificationModalOpen)}
               >
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">새로운 알람을 추가해 보세요!</CardTitle>
@@ -264,6 +366,7 @@ export function DashBoard() {
             }
           </div>
         </main>
+        {modifyModal(openModifyModal)}
       </div>
   )
 }
