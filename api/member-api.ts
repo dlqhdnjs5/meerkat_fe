@@ -22,8 +22,8 @@ const logoutMember = async () => {
 		})
 }
 
-const testMember = async () => {
-	return await API.get('/mapi/members/test')
+const sendAddressCheckEmail = async (email: string) => {
+	return await API.post('/mapi/members/send/address-check/mail', email)
 		.then(response => {
 			return response.data
 		})
@@ -34,5 +34,5 @@ export const memberApi = {
 	isExistMember,
 	loginMember,
 	logoutMember,
-	testMember
+	sendAddressCheckEmail,
 }

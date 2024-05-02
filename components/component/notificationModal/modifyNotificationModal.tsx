@@ -24,7 +24,7 @@ const ModifyNotificationModal = (props: Props) => {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>알람 수정</DialogTitle>
-                    <DialogDescription>알람 수정</DialogDescription>
+                    <DialogDescription>등록된 주소는 변경이 불가합니다.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="space-y-2">

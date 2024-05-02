@@ -108,10 +108,6 @@ const Login: NextPage = () => {
 		dispatch(resetMemberProfile())
 	}
 
-	const apiTest = async () => {
-		await memberApi.testMember()
-	}
-
 	const kakaoRemoval = async () => {
 		const isConnected = await isKakaoUserConnected()
 
@@ -194,9 +190,6 @@ const Login: NextPage = () => {
 					</button>
 					<button onClick={kakaoRemoval}>
 						완전 로그아웃
-					</button>
-					<button onClick={apiTest}>
-						api 테스트
 					</button>
 				</div>
 			</div>

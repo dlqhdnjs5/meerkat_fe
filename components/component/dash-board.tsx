@@ -2,19 +2,20 @@ import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import _ from 'lodash';
-import {JSX, SVGProps, useEffect, useState} from "react";
+import React, {JSX, SVGProps, useEffect, useState} from "react";
 import DaumPostcode, {Address} from 'react-daum-postcode';
 import {NotificationAddress, NotificationInfo} from "@/store/notification/types";
 import {useDispatch, useSelector} from "react-redux";
 import {
-  asyncAddNotification,
-  asyncGetNotification,
-  asyncGetNotifications,
-  asyncModifyNotification,
-  asyncRemoveNotifications
+    asyncAddNotification,
+    asyncGetNotification,
+    asyncGetNotifications,
+    asyncModifyNotification,
+    asyncRemoveNotifications
 } from "@/store/notification/asyncThunk";
 import ModifyNotificationModal from "@/components/component/notificationModal/modifyNotificationModal";
 import AddNotificationModal from "@/components/component/notificationModal/addNotificationModal";
+import RegistNotificationEmailModal from "@/components/component/commonModal/registNotificationEmailModal";
 
 export function DashBoard() {
   const dispatch = useDispatch<any>()
@@ -24,9 +25,11 @@ export function DashBoard() {
   const [addNotificationAddressInfo, setAddNotificationAddressInfo] = useState<NotificationAddress>()
   const [notiName, setNotiname] = useState('')
   const [notiTime, setNotiTime] = useState('')
+  const [notiEmail, setNotiEmail] = useState('')
   const [notificationInfo, setNotificationInfo] = useState<any>()
   const [openModifyModal, setOpenModifyModal] = useState(false)
   const [openAddModal, setOpenAddModal] = useState(false)
+  const [openRegistNotificationEmailModal, setOpenRegistNotificationEmailModal] = useState(false)
   const postCodeStyle = {
     width: '400px',
     height: '400px',
@@ -149,6 +152,19 @@ export function DashBoard() {
     }
 
     dispatch(asyncModifyNotification(parameter))
+  }
+
+  const handleNotiEmailChange = (e:any) => {
+    setNotiEmail(e.target.value)
+  }
+
+  const handleRegistNotiEmail = () => {
+    console.log('regist email')
+  }
+
+  const handleNotiEmailModalOpenChange = () => {
+    setOpenRegistNotificationEmailModal(!openRegistNotificationEmailModal)
+    setNotiEmail('')
   }
 
   const handleNotiNameChange = (e: any) => {
@@ -301,13 +317,19 @@ export function DashBoard() {
   return (
       <div className="flex flex-col w-full min-h-screen">
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
+          <div className="bg-gray-100 dark:bg-gray-900 p-4 md:p-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-gray-500 dark:text-gray-400">시군구 아파트 거래정보 알림을 받을 이메일을 먼저 등록해 주세요.</div>
+              <Button variant={'default'} onClick={() => setOpenRegistNotificationEmailModal(true)}>이메일 등록</Button>
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
-            {notificationList.length ? notificationList.map((notification: NotificationInfo) => (
+            {notificationList ? notificationList.map((notification: NotificationInfo) => (
                 notificationCard(notification)
             )) : <></>}
           </div>
           <div>
-            {notificationList.length < 5 ?
+            {notificationList && notificationList.length < 5 ?
                 <div>{addNotificationModalCard()}</div> : <div></div>
             }
           </div>
@@ -320,6 +342,11 @@ export function DashBoard() {
                                  handleNotiTimeChange={handleNotiTimeChange}
                                  handleModifyNotification={handleModifyNotification} notiName={notiName}
                                  notiTime={notiTime} notificationInfo={notificationInfo}/>
+        <RegistNotificationEmailModal openModal={openRegistNotificationEmailModal}
+                                      onOpenChange={handleNotiEmailModalOpenChange}
+                                      handleRegistNotiEmail={handleRegistNotiEmail}
+                                      setNotiEmail={setNotiEmail}
+                                      handleNotiEmailChange={handleNotiEmailChange} notiEmail={notiEmail}/>
       </div>
   )
 }
@@ -381,7 +408,7 @@ const ToggleRightIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement
           strokeLinecap="round"
           strokeLinejoin="round"
       >
-        <rect width="20" height="12" x="2" y="6" rx="6" ry="6" />
+        <rect width="20" height="12" x="2" y="6" rx="6" ry="6"/>
         <circle cx="16" cy="12" r="2" />
       </svg>
   )

@@ -27,7 +27,7 @@ const AddNotificationModal = (props: Props) => {
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>알람 생성</DialogTitle>
-                        <DialogDescription>실시간 거래 정보를 알고싶은 지역의 알람을 받아 보세요</DialogDescription>
+                        <DialogDescription>실시간 거래 정보를 알고싶은 시군구 지역의 알람을 받아 보세요</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="space-y-2">

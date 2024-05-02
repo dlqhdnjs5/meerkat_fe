@@ -43,7 +43,6 @@ export const asyncGetNotification = createAsyncThunk(
         const {notificationNo, handleSuccess} = parameterWithHandler
         return await notificationApi.getNotification(notificationNo)
             .then(value => {
-                console.log(value.data)
                 handleSuccess(value.data)
             })
             .catch(error => {

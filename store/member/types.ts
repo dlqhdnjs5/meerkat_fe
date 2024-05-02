@@ -5,6 +5,7 @@ export interface MemberState {
 export interface MemberProfile {
 	memberNo: string
 	email: string
+	notificationEmail: string
 	name: string
 	imgPath: string
 	statusCode: 'USER' | 'ADMIN'
